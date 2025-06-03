@@ -1,4 +1,5 @@
 **My Approach**
+
 Used React with functional components and hooks
 Fetched skip data from the provided API endpoint
 Dynamically generated skip cards with images, details, and selection functionality
