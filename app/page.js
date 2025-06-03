@@ -1,95 +1,84 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+import { useState, useEffect } from "react";
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.js</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [data, setData] = useState([]);
+  const [selectedSkipId, setSelectedSkipId] = useState(null);
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const fetchData = async () => {
+    try {
+      const response = await fetch(
+        "https://app.wewantwaste.co.uk/api/skips/by-location?postcode=NR32&area=Lowestoft"
+      );
+      const jsonData = await response.json();
+      setData(jsonData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleSelect = (id) => {
+    setSelectedSkipId(id);
+  };
+
+  const selectedSkip = data.find((item) => item.id === selectedSkipId);
+  return (
+    <div className="page-container">
+      <h1 className="page-title">Pick Your Perfect Skip Size</h1>
+
+      <div className="grid-container">
+        {data.map((item) => (
+          <div
+            key={item.id}
+            className={`card ${
+              selectedSkipId === item.id ? "card-selected" : ""
+            }`}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+            <div className="image-container">
+              <img
+                src={`https://yozbrydxdlcxghkphhtq.supabase.co/storage/v1/object/public/skips/skip-sizes/${item.size}-yarder-skip.jpg`}
+                alt={`${item.size} yard skip`}
+                className="skip-image"
+              />
+              {item.allowed_on_road ? (
+                <span className="badge badge-allowed">Allowed On The Road</span>
+              ) : (
+                <span className="badge badge-not-allowed">
+                  🚫 Not Allowed On The Road
+                </span>
+              )}
+              <span className="badge badge-size">{item.size} Yards</span>
+            </div>
+
+            <h2 className="card-title">{item.size} Yard Skip</h2>
+            <p className="card-text">Hire: {item.hire_period_days} days</p>
+            <p className="card-price">£{item.price_before_vat}</p>
+
+            <button
+              onClick={() => handleSelect(item.id)}
+              className={`select-button ${
+                selectedSkipId === item.id ? "selected" : ""
+              }`}
+            >
+              {selectedSkipId === item.id ? "✔ Selected" : "Select This Skip"}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {selectedSkip && (
+        <div className="bottom-bar">
+          <p>
+            Selected Skip Size:{" "}
+            <span className="selected-id">{selectedSkip.size} Yards</span>
+          </p>
+          <button className="continue-button">Continue</button>
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
     </div>
   );
 }
